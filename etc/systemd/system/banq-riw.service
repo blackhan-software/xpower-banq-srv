@@ -1,0 +1,24 @@
+# /etc/systemd/system/banq-riw.service
+[Unit]
+Description=Run banq-riw.sh
+
+[Service]
+ExecStart=/usr/local/bin/banq-riw.sh
+StandardOutput=journal
+StandardError=journal
+Type=oneshot
+
+# Resource protection
+MemoryMax=500M
+CPUQuota=100%
+
+# Security hardening (limited due to systemctl requirements)
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
