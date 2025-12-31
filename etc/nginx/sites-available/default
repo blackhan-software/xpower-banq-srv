@@ -1,0 +1,43 @@
+# API endpoints: 100 req/s per IP with burst capacity of 200
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/s;
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      '';
+}
+upstream xpowerbanq-api {
+    server 127.0.0.1:8001;
+    keepalive 32;
+}
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    listen 443 ssl http2 default_server;
+    listen [::]:443 ssl http2 default_server;
+
+    server_name xpowerbanq.com;
+    ssl_certificate /etc/ssl/certs/cf-xpowerbanq.com.crt;
+    ssl_certificate_key /etc/ssl/private/cf-xpowerbanq.com.key;
+
+    # Enable gzip compression for JSON responses
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types application/json text/plain;
+    gzip_min_length 256;
+
+    # All endpoints use same rate limit
+    location / {
+        limit_req zone=api_limit burst=200 nodelay;
+        limit_req_status 429;
+        proxy_pass http://xpowerbanq-api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_http_version 1.1;
+    }
+}
