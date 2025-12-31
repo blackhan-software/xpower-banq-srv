@@ -244,4 +244,4 @@ sensors # Linux with lm-sensors
 
 ## License
 
-Apache-2.0 - See project repository for details.
+GPL-3.0 - See project repository for details.
